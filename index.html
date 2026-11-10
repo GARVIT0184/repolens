@@ -1,102 +1,88 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>RepoLens | GitHub Intelligence</title>
-  <meta name="description" content="A live intelligence dashboard for GitHub repositories.">
-
-  <!-- External CSS -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- External JavaScript -->
   <script src="script.js" defer></script>
 </head>
-
 <body>
-  <main>
-    <header>
-      <div class="logo">◈ REPOLENS / INTELLIGENCE</div>
+<main>
+  <header>
+    <div class="logo">◈ REPOLENS / INTELLIGENCE</div>
+    <h1>Understand <span>any repo.</span></h1>
+    <p>A live intelligence dashboard for GitHub repositories.</p>
+  </header>
 
-      <h1>Understand <span>any repo.</span></h1>
+  <div class="search">
+    <input id="query" placeholder="Enter owner/repository (e.g. facebook/react)">
+    <button id="analyzeBtn">Analyze ↗</button>
+  </div>
 
-      <p>A live intelligence dashboard for GitHub repositories.</p>
-    </header>
+  <div id="status">Ready to inspect a repository.</div>
 
-    <div class="search">
-      <input
-        type="text"
-        id="query"
-        placeholder="Enter owner/repository (e.g. facebook/react)"
-        autocomplete="off"
-        aria-label="GitHub repository"
-      >
-
-      <button id="analyzeBtn" type="button">
-        Analyze ↗
-      </button>
-    </div>
-
-    <div id="status" role="status" aria-live="polite">
-      Ready to inspect a repository.
-    </div>
-
-    <section id="result" class="panel hidden">
+  <section id="result" class="hidden">
+    <div class="panel">
       <h2 class="repo-title" id="name"></h2>
-
       <p id="description"></p>
 
       <div class="stats">
-        <div class="stat">
-          <small>⭐ Stars</small>
-          <strong id="stars">—</strong>
-        </div>
-
-        <div class="stat">
-          <small>⑂ Forks</small>
-          <strong id="forks">—</strong>
-        </div>
-
-        <div class="stat">
-          <small>◉ Watchers</small>
-          <strong id="watchers">—</strong>
-        </div>
-
-        <div class="stat">
-          <small>◎ Open issues</small>
-          <strong id="issues">—</strong>
-        </div>
+        <div class="stat"><small>⭐ Stars</small><strong id="stars">—</strong></div>
+        <div class="stat"><small>⑂ Forks</small><strong id="forks">—</strong></div>
+        <div class="stat"><small>◉ Watchers</small><strong id="watchers">—</strong></div>
+        <div class="stat"><small>◎ Open issues</small><strong id="issues">—</strong></div>
       </div>
 
       <div class="meta">
-        <span>
-          Language: <strong id="language">—</strong>
-        </span>
+        <span>Language: <strong id="language">—</strong></span>
+        <span>Created: <strong id="created">—</strong></span>
+        <a id="repoLink" target="_blank" rel="noopener">View on GitHub ↗</a>
+      </div>
+    </div>
 
-        <span>
-          Created: <strong id="created">—</strong>
-        </span>
-
-        <a
-          id="repoLink"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View on GitHub ↗
-        </a>
+    <div class="dashboard-grid">
+      <div class="panel">
+        <h3>Repository health</h3>
+        <div class="health-score">
+          <strong id="healthScore">—</strong>
+          <span>/ 100</span>
+        </div>
+        <div class="progress-track">
+          <div id="healthBar"></div>
+        </div>
+        <p id="healthLabel">Waiting for analysis...</p>
+        <ul id="healthFactors"></ul>
+        <p class="note">An indicative RepoLens score based on public repository signals, not an official GitHub rating.</p>
       </div>
 
-      <div class="commits">
-        <h3>Recent activity</h3>
-        <div id="commitList"></div>
+      <div class="panel">
+        <h3>Language distribution</h3>
+        <div id="languageChart">
+          <p>Language data will appear here.</p>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <footer>
-      REPOLENS · Built with the GitHub REST API
-    </footer>
-  </main>
+    <div class="panel">
+      <h3>Contributor insights</h3>
+      <div class="contributor-summary">
+        <div>
+          <small>Estimated contributors</small>
+          <strong id="contributorCount">—</strong>
+        </div>
+        <p id="contributorNote">Based on GitHub's contributors API.</p>
+      </div>
+      <div id="contributors"></div>
+    </div>
+
+    <div class="panel commits">
+      <h3>Recent activity</h3>
+      <div id="commitList"></div>
+    </div>
+  </section>
+
+  <footer>REPOLENS · Built with the GitHub REST API</footer>
+</main>
 </body>
 </html>
