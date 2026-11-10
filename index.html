@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepoLens | GitHub Intelligence</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #080d18;
+      color: #e5eaf5;
+      font-family: Inter, system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 50px 20px;
+    }
+    main { max-width: 900px; margin: auto; }
+    header { margin-bottom: 45px; }
+    .logo { color: #65e6b4; font-size: 14px; letter-spacing: 4px; }
+    h1 { font-size: clamp(36px, 7vw, 60px); margin: 18px 0 10px; }
+    h1 span { color: #65e6b4; }
+    p { color: #8e9bb2; line-height: 1.7; }
+    .search {
+      display: flex; gap: 10px; margin: 28px 0;
+      background: #111a2b; padding: 10px;
+      border: 1px solid #26344c; border-radius: 14px;
+    }
+    input {
+      flex: 1; min-width: 0; background: transparent;
+      border: 0; outline: 0; color: white;
+      padding: 12px; font-size: 15px;
+    }
+    button {
+      background: #65e6b4; border: 0; border-radius: 9px;
+      padding: 0 22px; font-weight: 800; cursor: pointer;
+    }
+    button:hover { background: #8affd1; }
+    #status { margin: 15px 0; color: #65e6b4; }
+    .panel {
+      background: #111a2b; border: 1px solid #26344c;
+      border-radius: 16px; padding: 25px; margin-top: 20px;
+    }
+    .hidden { display: none; }
+    .repo-title { font-size: 25px; margin-bottom: 10px; }
+    .stats {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 12px; margin-top: 25px;
+    }
+    .stat {
+      background: #19253a; border-radius: 12px;
+      padding: 18px;
+    }
+    .stat small { color: #8e9bb2; display: block; }
+    .stat strong { display: block; font-size: 24px; margin-top: 8px; }
+    .meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+    .commits { margin-top: 25px; }
+    .commit {
+      padding: 13px 0; border-bottom: 1px solid #26344c;
+      color: #c4cee0; font-size: 14px;
+    }
+    a { color: #65e6b4; text-decoration: none; }
+    footer { text-align: center; margin-top: 55px; color: #66738b; font-size: 12px; }
+    @media(max-width: 600px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .search { flex-direction: column; }
+      button { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo">◈ REPOLENS / INTELLIGENCE</div>
+    <h1>Understand <span>any repo.</span></h1>
+    <p>A live intelligence dashboard for GitHub repositories.</p>
+  </header>
+
+  <div class="search">
+    <input id="query" placeholder="Enter owner/repository (e.g. facebook/react)">
+    <button onclick="analyze()">Analyze ↗</button>
+  </div>
+
+  <div id="status">Ready to inspect a repository.</div>
+
+  <section id="result" class="panel hidden">
+    <h2 class="repo-title" id="name"></h2>
+    <p id="description"></p>
+    <div class="stats">
+      <div class="stat"><small>⭐ Stars</small><strong id="stars">—</strong></div>
+      <div class="stat"><small>⑂ Forks</small><strong id="forks">—</strong></div>
+      <div class="stat"><small>◉ Watchers</small><strong id="watchers">—</strong></div>
+      <div class="stat"><small>◎ Open issues</small><strong id="issues">—</strong></div>
+    </div>
+    <div class="meta">
+      <span>Language: <strong id="language">—</strong></span>
+      <span>Created: <strong id="created">—</strong></span>
+      <a id="repoLink" target="_blank" rel="noopener">View on GitHub ↗</a>
+    </div>
+    <div class="commits">
+      <h3>Recent activity</h3>
+      <div id="commitList"></div>
+    </div>
+  </section>
+
+  <footer>REPOLENS · Built with the GitHub REST API</footer>
+</main>
+
+<script>
+async function analyze() {
+  const input = document.getElementById("query").value.trim();
+  const match = input.match(/(?:github\.com\/)?([^/\s]+)\/([^/\s#?]+)/i);
+  const status = document.getElementById("status");
+  const result = document.getElementById("result");
+
+  if (!match) {
+    status.textContent = "Enter a valid repository, e.g. facebook/react";
+    return;
+  }
+
+  const owner = match[1];
+  const repo = match[2].replace(/\.git$/, "");
+  status.textContent = "Scanning repository...";
+  result.classList.add("hidden");
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`
+    );
+    if (!response.ok) throw new Error(
+      response.status === 404 ? "Repository not found." : `GitHub API error: ${response.status}`
+    );
+
+    const data = await response.json();
+    const commitsResponse = await fetch(
+      `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?per_page=5`
+    );
+    const commits = commitsResponse.ok ? await commitsResponse.json() : [];
+
+    document.getElementById("name").textContent = data.full_name;
+    document.getElementById("description").textContent = data.description || "No description provided.";
+    document.getElementById("stars").textContent = data.stargazers_count.toLocaleString();
+    document.getElementById("forks").textContent = data.forks_count.toLocaleString();
+    document.getElementById("watchers").textContent = data.subscribers_count.toLocaleString();
+    document.getElementById("issues").textContent = data.open_issues_count.toLocaleString();
+    document.getElementById("language").textContent = data.language || "Not specified";
+    document.getElementById("created").textContent = new Date(data.created_at).toLocaleDateString();
+    document.getElementById("repoLink").href = data.html_url;
+
+    document.getElementById("commitList").innerHTML = commits.map(c =>
+      `<div class="commit">${escapeHTML(c.commit.message.split("\n")[0])}</div>`
+    ).join("") || "<p>No recent commits available.</p>";
+
+    result.classList.remove("hidden");
+    status.textContent = "✓ Repository analysis complete.";
+  } catch (error) {
+    status.textContent = "⚠ " + error.message;
+  }
+}
+
+function escapeHTML(value) {
+  return value.replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;",
+    '"': "&quot;", "'": "&#39;"
+  })[char]);
+}
+
+document.getElementById("query").addEventListener("keydown", event => {
+  if (event.key === "Enter") analyze();
+});
+</script>
+</body>
+</html>
